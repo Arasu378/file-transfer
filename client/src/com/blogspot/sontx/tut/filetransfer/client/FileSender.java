@@ -21,13 +21,17 @@ public class FileSender extends FileWorker {
         fileInputStream = new FileInputStream(originFile = new File(filePath));
     }
 
-    private void sendFile() throws IOException {
+    private void sendFile() throws IOException, InterruptedException {
         Data fileData = new Data(Data.TYPE_FILE_DATA, null);
         byte[] fileBuffer = new byte[DATA_IN_BUFFER_SIZE - 1];
         int chunk;
         long totalBytes = originFile.length();
         long sentBytes = 0;
         while ((chunk = fileInputStream.read(fileBuffer)) > 0) {
+            synchronized (lock) {
+                if (pendingPause)
+                    lock.wait();
+            }
             fileData.setExtra(fileBuffer, 0, chunk);
             Data responseData = writeForResult(fileData);
             if (responseData.getType() != Data.TYPE_CMD_OK)
@@ -46,7 +50,7 @@ public class FileSender extends FileWorker {
     }
 
     @Override
-    protected void processingFile() throws IOException {
+    protected void processingFile() throws IOException, InterruptedException {
         sendFile();
     }
 

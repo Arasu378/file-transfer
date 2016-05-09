@@ -9,8 +9,8 @@ import java.io.IOException;
 public class Program {
     public static void main(String[] args) {
         try {
-//            FileServerHandler fileServerHandler = new FileServerHandler("localhost", 3393);
-//            fileServerHandler.start();
+            FileServerHandler fileServerHandler = new FileServerHandler("localhost", 3393);
+            fileServerHandler.start();
             ServerHandler serverHandler = new ServerHandler("localhost", 2512);
             serverHandler.start();
         } catch (IOException e) {

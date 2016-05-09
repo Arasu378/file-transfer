@@ -10,6 +10,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * Copyright 2016 by sontx
@@ -119,9 +120,12 @@ public class ServerHandler extends Server {
         private void processResponseSendingFileRequest(byte type, byte[] extra) throws IOException {
             String rawString = new String(extra);
             synchronized (this) {
-                ClientHandler clientHandler = getClientByUsername(rawString);
+                StringTokenizer tokenizer = new StringTokenizer(rawString, "|");
+                String who = tokenizer.nextToken();
+                String uuid = tokenizer.nextToken();
+                ClientHandler clientHandler = getClientByUsername(who);
                 if (clientHandler != null)
-                    clientHandler.writeData(new Data(type, username.getBytes()));
+                    clientHandler.writeData(new Data(type, uuid.getBytes()));
             }
         }
 

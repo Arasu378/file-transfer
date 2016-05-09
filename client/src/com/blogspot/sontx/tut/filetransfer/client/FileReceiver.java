@@ -21,11 +21,15 @@ public class FileReceiver extends FileWorker {
         this.totalBytes = totalBytes;
     }
 
-    private void receiveFile() throws IOException {
+    private void receiveFile() throws IOException, InterruptedException {
         Data okData = new Data(Data.TYPE_CMD_OK, null);
         long receivedBytes = 0;
         do {
             Data fileData = readData();
+            synchronized (lock) {
+                if (pendingPause)
+                    lock.wait();
+            }
             if (fileData.getType() != Data.TYPE_FILE_DATA)
                 throw new IOException("Remote refused");
             if (pendingCancel) {
@@ -44,7 +48,7 @@ public class FileReceiver extends FileWorker {
     }
 
     @Override
-    protected void processingFile() throws IOException {
+    protected void processingFile() throws IOException, InterruptedException {
         receiveFile();
     }
 

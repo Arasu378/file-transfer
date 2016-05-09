@@ -13,8 +13,21 @@ import java.net.Socket;
 public abstract class FileWorker extends ClientWorker {
     protected OnProcessingFileListener mOnProcessingFileListener = null;
     protected boolean pendingCancel = false;
+    protected boolean pendingPause = false;
     protected boolean canceled = false;
+    protected final Object lock = new Object();
     private String uuid;
+
+    public void pauseWorker() {
+        pendingPause = true;
+    }
+
+    public void resumeWorker() {
+        pendingPause = false;
+        synchronized (lock) {
+            lock.notify();
+        }
+    }
 
     public void cancel() {
         pendingCancel = true;
@@ -28,7 +41,7 @@ public abstract class FileWorker extends ClientWorker {
         mOnProcessingFileListener = l;
     }
 
-    protected abstract void processingFile() throws IOException;
+    protected abstract void processingFile() throws IOException, InterruptedException;
 
     @Override
     protected void runOnBackground() throws IOException {
@@ -36,10 +49,10 @@ public abstract class FileWorker extends ClientWorker {
         try {
             Log.i("Start processing file...");
             processingFile();
-            Log.i("Stopped process file");
+            Log.i("Stopped processing file");
             if (mOnProcessingFileListener != null)
                 mOnProcessingFileListener.onCompleted(this, null);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             if (mOnProcessingFileListener != null)
                 mOnProcessingFileListener.onCompleted(this, e);
         }

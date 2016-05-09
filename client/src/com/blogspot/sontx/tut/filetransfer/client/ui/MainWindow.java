@@ -2,6 +2,7 @@ package com.blogspot.sontx.tut.filetransfer.client.ui;
 
 import com.blogspot.sontx.tut.filetransfer.bean.Data;
 import com.blogspot.sontx.tut.filetransfer.client.Client;
+import com.blogspot.sontx.tut.filetransfer.client.FileSender;
 import com.blogspot.sontx.tut.filetransfer.client.Program;
 
 import javax.swing.*;
@@ -83,10 +84,12 @@ public class MainWindow extends ReconnectableWindow implements Client.OnReceived
                 public void run() {
                     tempUUID = null;
                     if (JOptionPane.showConfirmDialog(MainWindow.this, String.format(
-                            "%s want to sending %s(%.2fKB), accept?", from, fileName, fileSize / 1024.0f)) == JOptionPane.OK_OPTION) {
+                            "%s want to sending %s(%.2fKB), accept?", from, fileName, fileSize / 1024.0f),
+                            getTitle(), JOptionPane.YES_NO_OPTION) == JOptionPane.OK_OPTION) {
                         tempUUID = UUID.randomUUID().toString();
+                        FileReceiverWindow fileReceiverWindow = new FileReceiverWindow(fileName, fileSize, from, tempUUID);
+                        fileReceiverWindow.showWindow();
                     }
-                    // prepare receiving file with uuid
                 }
             });
         } catch (InterruptedException | InvocationTargetException e) {
@@ -113,7 +116,8 @@ public class MainWindow extends ReconnectableWindow implements Client.OnReceived
             @Override
             public void run() {
                 friendField.setEnabled(true);
-                // send to remove with uuid
+                FileSenderWindow fileSenderWindow = new FileSenderWindow(currentSendingFileTemp.file, currentSendingFileTemp.forWho, uuid);
+                fileSenderWindow.showWindow();
             }
         });
     }
@@ -135,7 +139,7 @@ public class MainWindow extends ReconnectableWindow implements Client.OnReceived
 
         private void pickAndSendFile(String forWho) {
             JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setDialogTitle(String.format("Pick a file to send for %s", forWho));
+            fileChooser.setDialogTitle(String.format("Pick a file to send to %s", forWho));
             if (fileChooser.showOpenDialog(MainWindow.this) == JFileChooser.APPROVE_OPTION) {
                 File selectedFile = fileChooser.getSelectedFile();
                 try {

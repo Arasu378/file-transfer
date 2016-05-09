@@ -144,7 +144,7 @@ public class LoginWindow extends ReconnectableWindow implements Client.OnReceive
     }
 
     @Override
-    public void remoteCancelReceivingFile(String from) {
+    public void remoteCancelReceivingFile() {
 
     }
 

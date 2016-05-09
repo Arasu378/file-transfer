@@ -35,27 +35,6 @@ public class Program {
     }
 
     public static void main(String[] args) {
-//        Scanner scanner = new Scanner(System.in);
-//        int what = scanner.nextInt();
-//        FileWorker worker = null;
-//        if (what == 0) {
-//            System.out.println("sender");
-//            try {
-//                worker = new FileSender("localhost", 3393, "123", "E:\\data\\a.mp3");
-//            } catch (FileNotFoundException e) {
-//                e.printStackTrace();
-//            }
-//        } else {
-//            System.out.println("receiver");
-//            try {
-//                worker = new FileReceiver("localhost", 3393, "123", "E:\\data\\b.mp3", 4701048);
-//            } catch (FileNotFoundException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        worker.start();
-//        System.out.println("doing...");
-//        scanner.next();
         ConnectionWindow connectionWindow = new ConnectionWindow();
         connectionWindow.showWindow();
     }

@@ -7,6 +7,7 @@ import com.blogspot.sontx.tut.filetransfer.bo.Log;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.StringTokenizer;
 
 /**
  * Copyright 2016 by sontx
@@ -64,7 +65,7 @@ public final class Client extends ClientWorker {
                     processRemoteCancelReceivingFile();
                     break;
                 case Data.TYPE_CMD_OK:
-                    Log.i("Remote cancel receiving file");
+                    Log.i("Remote accept receiving file");
                     processRemoteAcceptReceivingFile(data.getExtra());
                     break;
             }
@@ -89,18 +90,15 @@ public final class Client extends ClientWorker {
     }
 
     private void processRequestSendFile(byte[] extra) throws IOException {
-        String rawString = new String(extra);
-        String[] parts = rawString.split("|");
-        String from = parts[0];
-        String fileName = parts[1];
-        String sFileSize = parts[2];
-        long fileSize = Long.parseLong(sFileSize);
+        FileHeader fileHeader = FileHeader.parse(extra);
         if (mOnReceivedResponseListener != null) {
-            String uuid = mOnReceivedResponseListener.remoteRequestSendingFile(fileName, fileSize, from);
-            if (uuid != null)
-                writeData(new Data(Data.TYPE_CMD_OK, uuid.getBytes()));
-            else
+            String uuid = mOnReceivedResponseListener.remoteRequestSendingFile(fileHeader.getFileName(), fileHeader.getFileLength(), fileHeader.getWho());
+            if (uuid != null) {
+                String st = String.format("%s|%s", fileHeader.getWho(), uuid);
+                writeData(new Data(Data.TYPE_CMD_OK, st.getBytes()));
+            } else {
                 writeData(new Data(Data.TYPE_CMD_CANCEL, null));
+            }
         }
     }
 

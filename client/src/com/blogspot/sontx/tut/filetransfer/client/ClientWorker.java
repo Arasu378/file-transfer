@@ -13,6 +13,10 @@ public abstract class ClientWorker extends Worker {
     private String serverAddress;
     private int serverPort;
 
+    public String getServerAddress() {
+        return serverAddress;
+    }
+
     public ClientWorker(String serverAddress, int serverPort) {
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;

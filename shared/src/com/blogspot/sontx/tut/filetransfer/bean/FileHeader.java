@@ -1,6 +1,7 @@
 package com.blogspot.sontx.tut.filetransfer.bean;
 
 import java.io.File;
+import java.util.StringTokenizer;
 
 /**
  * Copyright 2016 by sontx
@@ -50,11 +51,11 @@ public class FileHeader {
 
     public static FileHeader parse(byte[] extra) {
         String rawString = new String(extra);
-        String[] parts = rawString.split("|");
+        StringTokenizer tokenizer = new StringTokenizer(rawString, "|");
         FileHeader fileHeader = new FileHeader();
-        fileHeader.who = parts[0];
-        fileHeader.fileName = parts[1];
-        fileHeader.fileLength = Long.parseLong(parts[2]);
+        fileHeader.who = tokenizer.nextToken();
+        fileHeader.fileName = tokenizer.nextToken();
+        fileHeader.fileLength = Long.parseLong(tokenizer.nextToken());
         return fileHeader;
     }
 }
