@@ -1,5 +1,6 @@
 package com.blogspot.sontx.tut.filetransfer.client.ui;
 
+import com.blogspot.sontx.tut.filetransfer.bean.Account;
 import com.blogspot.sontx.tut.filetransfer.bean.Data;
 import com.blogspot.sontx.tut.filetransfer.client.Client;
 import com.blogspot.sontx.tut.filetransfer.client.Program;
@@ -20,7 +21,7 @@ public class LoginWindow extends ReconnectableWindow implements Client.OnReceive
     private JPasswordField passwordField2;
     private JPasswordField confirmField2;
 
-    public LoginWindow() {
+    LoginWindow() {
         setTitle("Login");
         setSize(380, 383);
         getContentPane().setLayout(null);
@@ -97,7 +98,23 @@ public class LoginWindow extends ReconnectableWindow implements Client.OnReceive
     }
 
     private void processRegister() {
-
+        String username = usernameField2.getText();
+        String password = new String(passwordField2.getPassword());
+        String confirm = new String(confirmField2.getPassword());
+        if (username == null || (username = username.trim()).length() == 0) {
+            JOptionPane.showMessageDialog(this, "Username is empty!", getTitle(), JOptionPane.WARNING_MESSAGE);
+        } else if (password.length() == 0) {
+            JOptionPane.showMessageDialog(this, "Password is empty!", getTitle(), JOptionPane.WARNING_MESSAGE);
+        } else if (!password.equals(confirm)) {
+            JOptionPane.showMessageDialog(this, "Confirm password not match with password!", getTitle(), JOptionPane.WARNING_MESSAGE);
+        } else {
+            Account account = new Account(username, password);
+            try {
+                Program.getInstance().getClient().registerAccount(account);
+            } catch (IOException e) {
+                reconnect(e);
+            }
+        }
     }
 
     private void processLogin() {
@@ -111,15 +128,19 @@ public class LoginWindow extends ReconnectableWindow implements Client.OnReceive
         }
     }
 
+    private void gotoMainWindow(String username) {
+        MainWindow mainWindow = new MainWindow(username);
+        mainWindow.showWindow();
+        dispose();
+    }
+
     @Override
     public void loginResult(final byte result) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
                 if (result == Data.TYPE_CMD_OK) {
-                    MainWindow mainWindow = new MainWindow(usernameField1.getText());
-                    mainWindow.showWindow();
-                    dispose();
+                    gotoMainWindow(usernameField1.getText());
                 } else {
                     JOptionPane.showMessageDialog(LoginWindow.this, "Login failed!", getTitle(), JOptionPane.WARNING_MESSAGE);
                     setEnabled(true);
@@ -129,27 +150,17 @@ public class LoginWindow extends ReconnectableWindow implements Client.OnReceive
     }
 
     @Override
-    public void updateFriendList(String friend, int type) {
-
-    }
-
-    @Override
-    public void hasFriendsList(String[] friends) {
-
-    }
-
-    @Override
-    public String remoteRequestSendingFile(String fileName, long fileSize, String from) {
-        return null;
-    }
-
-    @Override
-    public void remoteCancelReceivingFile() {
-
-    }
-
-    @Override
-    public void remoteAcceptReceivingFile(String from) {
-
+    public void registerResult(final byte result, final String extraMessage) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                if (result == Data.TYPE_ACC_REGISTER_OK) {
+                    JOptionPane.showMessageDialog(LoginWindow.this, "Register successful!");
+                } else {
+                    JOptionPane.showMessageDialog(LoginWindow.this, String.format("Register failed because: %s", extraMessage),
+                            getTitle(), JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        });
     }
 }

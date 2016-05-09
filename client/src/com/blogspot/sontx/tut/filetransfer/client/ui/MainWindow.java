@@ -17,7 +17,7 @@ import java.util.UUID;
  * Copyright 2016 by sontx
  * Created by sontx on 9/5/2016.
  */
-public class MainWindow extends ReconnectableWindow implements Client.OnReceivedResponseListener {
+public class MainWindow extends ReconnectableWindow {
     private JList<String> friendField;
     private DefaultListModel<String> friendModel;
     private FileTemp currentSendingFileTemp = new FileTemp();
@@ -43,11 +43,6 @@ public class MainWindow extends ReconnectableWindow implements Client.OnReceived
         } catch (IOException e) {
             reconnect(e);
         }
-    }
-
-    @Override
-    public void loginResult(byte result) {
-
     }
 
     @Override

@@ -24,6 +24,10 @@ public final class Client extends ClientWorker {
         writeData(new Data(Data.TYPE_CMD_LIST, null));
     }
 
+    public void registerAccount(Account account) throws IOException {
+        writeData(new Data(Data.TYPE_ACC_REGISTER, account.getBytes()));
+    }
+
     public void requestLogin(String username, String password) throws IOException {
         writeData(new Data(Data.TYPE_ACC_LOGIN, new Account(username, password).getBytes()));
     }
@@ -68,8 +72,19 @@ public final class Client extends ClientWorker {
                     Log.i("Remote accept receiving file");
                     processRemoteAcceptReceivingFile(data.getExtra());
                     break;
+                case Data.TYPE_ACC_REGISTER_OK:
+                    processRegisterResult(Data.TYPE_ACC_REGISTER_OK, data.getExtra());
+                    break;
+                case Data.TYPE_ACC_REGISTER_CANCEL:
+                    processRegisterResult(Data.TYPE_ACC_REGISTER_CANCEL, data.getExtra());
+                    break;
             }
         }
+    }
+
+    private void processRegisterResult(byte result, byte[] extra) {
+        if (mOnReceivedResponseListener != null)
+            mOnReceivedResponseListener.registerResult(result, extra != null ? new String(extra) : null);
     }
 
     private void processRemoteAcceptReceivingFile(byte[] extra) {
@@ -125,5 +140,6 @@ public final class Client extends ClientWorker {
         String remoteRequestSendingFile(String fileName, long fileSize, String from);
         void remoteCancelReceivingFile();
         void remoteAcceptReceivingFile(String uuid);
+        void registerResult(byte result, String extraMessage);
     }
 }
