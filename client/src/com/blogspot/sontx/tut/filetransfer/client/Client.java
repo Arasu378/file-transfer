@@ -2,14 +2,11 @@ package com.blogspot.sontx.tut.filetransfer.client;
 
 import com.blogspot.sontx.tut.filetransfer.bean.Account;
 import com.blogspot.sontx.tut.filetransfer.bean.Data;
+import com.blogspot.sontx.tut.filetransfer.bean.FileHeader;
 import com.blogspot.sontx.tut.filetransfer.bo.Log;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Copyright 2016 by sontx
@@ -26,10 +23,14 @@ public final class Client extends ClientWorker {
         writeData(new Data(Data.TYPE_CMD_LIST, null));
     }
 
+    public void requestLogin(String username, String password) throws IOException {
+        writeData(new Data(Data.TYPE_ACC_LOGIN, new Account(username, password).getBytes()));
+    }
+
     public void requestSendFile(String filePath, String who) throws IOException {
         File file = new File(filePath);
-        String extra = String.format("%s|%s|%d", who, file.getName(), file.length());
-        writeData(new Data(Data.TYPE_CMD_SNDFILE, extra.getBytes()));
+        FileHeader fileHeader = new FileHeader(file, who);
+        writeData(new Data(Data.TYPE_CMD_SNDFILE, fileHeader.getBytes()));
     }
 
     public Client(String serverAddress, int serverPort) {
@@ -42,6 +43,10 @@ public final class Client extends ClientWorker {
         while (true) {
             Data data = readData();
             switch (data.getType()) {
+                case Data.TYPE_ACC_LOGIN:
+                    Log.i("Received login result");
+                    processLoginResult(data.getExtra());
+                    break;
                 case Data.TYPE_CMD_LIST:
                     Log.i("Received friends list");
                     processFriendsList(data.getExtra());
@@ -56,16 +61,31 @@ public final class Client extends ClientWorker {
                     break;
                 case Data.TYPE_CMD_CANCEL:
                     Log.i("Remote cancel receiving file");
-                    processRemoteCancelReceivingFile(data.getExtra());
+                    processRemoteCancelReceivingFile();
+                    break;
+                case Data.TYPE_CMD_OK:
+                    Log.i("Remote cancel receiving file");
+                    processRemoteAcceptReceivingFile(data.getExtra());
                     break;
             }
         }
     }
 
-    private void processRemoteCancelReceivingFile(byte[] extra) {
+    private void processRemoteAcceptReceivingFile(byte[] extra) {
         String rawString = new String(extra);
         if (mOnReceivedResponseListener != null)
-            mOnReceivedResponseListener.remoteCancelReceivingFile(rawString);
+            mOnReceivedResponseListener.remoteAcceptReceivingFile(rawString);
+    }
+
+    private void processLoginResult(byte[] extra) {
+        byte result = extra[0];
+        if (mOnReceivedResponseListener != null)
+            mOnReceivedResponseListener.loginResult(result);
+    }
+
+    private void processRemoteCancelReceivingFile() {
+        if (mOnReceivedResponseListener != null)
+            mOnReceivedResponseListener.remoteCancelReceivingFile();
     }
 
     private void processRequestSendFile(byte[] extra) throws IOException {
@@ -76,29 +96,36 @@ public final class Client extends ClientWorker {
         String sFileSize = parts[2];
         long fileSize = Long.parseLong(sFileSize);
         if (mOnReceivedResponseListener != null) {
-            String uuid = mOnReceivedResponseListener.requestSendFile(fileName, fileSize, from);
+            String uuid = mOnReceivedResponseListener.remoteRequestSendingFile(fileName, fileSize, from);
             if (uuid != null)
                 writeData(new Data(Data.TYPE_CMD_OK, uuid.getBytes()));
+            else
+                writeData(new Data(Data.TYPE_CMD_CANCEL, null));
         }
     }
 
     private void processNewFriend(byte[] extra) {
         String rawString = new String(extra);
+        String[] parts = rawString.split(";");
         if (mOnReceivedResponseListener != null)
-            mOnReceivedResponseListener.updateFriendList(rawString);
+            mOnReceivedResponseListener.updateFriendList(parts[1], Integer.parseInt(parts[0]));
     }
 
     private void processFriendsList(byte[] extra) {
-        String rawString = new String(extra);
-        String[] parts = rawString.split("|");
-        if (mOnReceivedResponseListener != null)
-            mOnReceivedResponseListener.hasFriendsList(parts);
+        if (extra != null) {
+            String rawString = new String(extra);
+            String[] parts = rawString.split(";");
+            if (mOnReceivedResponseListener != null)
+                mOnReceivedResponseListener.hasFriendsList(parts);
+        }
     }
 
     public interface OnReceivedResponseListener {
-        void updateFriendList(String newFriend);
+        void loginResult(byte result);
+        void updateFriendList(String friend, int type);
         void hasFriendsList(String[] friends);
-        String requestSendFile(String fileName, long fileSize, String from);
-        void remoteCancelReceivingFile(String from);
+        String remoteRequestSendingFile(String fileName, long fileSize, String from);
+        void remoteCancelReceivingFile();
+        void remoteAcceptReceivingFile(String uuid);
     }
 }

@@ -1,9 +1,16 @@
 package com.blogspot.sontx.tut.filetransfer.bean;
 
 public class Account {
-	private static final char DELIM = ' ';
+	private static final char DELIM = '|';
 	private String username;
 	private String password;
+
+	public Account() {}
+
+	public Account(String username, String password) {
+		this.username = username;
+		this.password = password;
+	}
 
 	public String getUsername() {
 		return username;

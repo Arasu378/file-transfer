@@ -12,6 +12,9 @@ public class Data {
 	public static final byte TYPE_FILE_UUID = 9;
 	public static final byte TYPE_CMD_LIST = 10;
 	public static final byte TYPE_CMD_FRIEND = 11;
+	public static final byte TYPE_CMD_DENIED = 12;
+	public static final byte TYPE_CMD_FRIEND_ADDED = 13;
+	public static final byte TYPE_CMD_FRIEND_REMOVED = 14;
 
 	private byte type = TYPE_CMD_OK;
 	private byte[] extra = null;

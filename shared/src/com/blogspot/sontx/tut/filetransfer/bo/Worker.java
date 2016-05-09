@@ -46,7 +46,10 @@ public abstract class Worker extends Thread implements Closeable {
 
     public static Data readData(InputStream in) throws IOException {
         int receivedBytes = 0;
-        byte[] dataInBuffer = new byte[getDataSize(in)];
+        int dateSize = getDataSize(in);
+        if (dateSize < 0)
+            return null;
+        byte[] dataInBuffer = new byte[dateSize];
         do {
             int length = in.read(dataInBuffer, receivedBytes, dataInBuffer.length - receivedBytes);
             receivedBytes += length;
@@ -87,7 +90,10 @@ public abstract class Worker extends Thread implements Closeable {
         this.socket = socket;
         this.in = socket.getInputStream();
         this.out = socket.getOutputStream();
+        fireOnConnectionStateChangedEvent(CONNECTION_STATE_CONNECTED, null);
     }
+
+    protected void onWorkerStopped() throws IOException {}
 
     @Override
     public final void run() {
@@ -97,6 +103,10 @@ public abstract class Worker extends Thread implements Closeable {
             fireOnConnectionStateChangedEvent(CONNECTION_STATE_DISCONNECTED, e);
         }
         fireOnConnectionStateChangedEvent(CONNECTION_STATE_DISCONNECTED, null);
+        try {
+            onWorkerStopped();
+        } catch (IOException e) {
+        }
     }
 
     @Override

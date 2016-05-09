@@ -22,6 +22,8 @@ public abstract class ServerWorker extends Worker {
     protected void runOnBackground() throws IOException {
         while (true) {
             Data data = readData();
+            if (data == null)
+                break;
             processData(data);
         }
     }
