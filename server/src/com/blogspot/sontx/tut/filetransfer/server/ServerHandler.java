@@ -114,6 +114,20 @@ public class ServerHandler extends Server {
                 case Data.TYPE_CMD_CANCEL:
                     processResponseSendingFileRequest(data.getType(), data.getExtra());
                     break;
+                case Data.TYPE_ACC_REGISTER:
+                    processRegisterRequest(data.getExtra());
+                    break;
+            }
+        }
+
+        private void processRegisterRequest(byte[] extra) throws IOException {
+            Account account = Account.parse(extra,0 , extra.length);
+            if (!DataManager.getInstance().checkAccountExists(account.getUsername())) {
+                DataManager.getInstance().insertAccount(account.getUsername(), account.getPassword());
+                writeData(new Data(Data.TYPE_ACC_REGISTER_OK, null));
+                processRequestLogin(extra);
+            } else {
+                writeData(new Data(Data.TYPE_ACC_REGISTER_CANCEL, "Account already exists.".getBytes()));
             }
         }
 

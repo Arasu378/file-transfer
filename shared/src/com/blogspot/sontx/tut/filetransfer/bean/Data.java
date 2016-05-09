@@ -15,6 +15,9 @@ public class Data {
 	public static final byte TYPE_CMD_DENIED = 12;
 	public static final byte TYPE_CMD_FRIEND_ADDED = 13;
 	public static final byte TYPE_CMD_FRIEND_REMOVED = 14;
+	public static final byte TYPE_ACC_REGISTER = 15;
+	public static final byte TYPE_ACC_REGISTER_OK = 16;
+	public static final byte TYPE_ACC_REGISTER_CANCEL = 17;
 
 	private byte type = TYPE_CMD_OK;
 	private byte[] extra = null;

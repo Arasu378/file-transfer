@@ -61,6 +61,32 @@ public final class DataManager {
         }).complete();
     }
 
+    public boolean checkAccountExists(final String username) {
+        return queue.execute(new SQLiteJob<Boolean>() {
+            @Override
+            protected Boolean job(SQLiteConnection connection) throws Throwable {
+                String sql = String.format("SELECT * FROM accounts WHERE username='%s'", username);
+                SQLiteStatement statement = connection.prepare(sql);
+                boolean result = statement.step();
+                statement.dispose();
+                return result;
+            }
+        }).complete();
+    }
+
+    public void insertAccount(final String username, final String password) {
+        queue.execute(new SQLiteJob<Void>() {
+            @Override
+            protected Void job(SQLiteConnection connection) throws Throwable {
+                String sql = String.format("INSERT INTO accounts(username, password) VALUES('%s', '%s')", username, password);
+                SQLiteStatement statement = connection.prepare(sql);
+                statement.stepThrough();
+                statement.dispose();
+                return null;
+            }
+        }).complete();
+    }
+
     private void stop () {
         queue.stop(true);
     }
